@@ -47,14 +47,16 @@ public abstract class Component
 
 public final class Entity
 {
-	private ComponentContainer!Component _components;
+	alias Components = ComponentContainer!Component;
+
+	private Components _components;
 	private Scene _scene;
 
 	package this(Scene scene)
 	{
 		assert(scene !is null);
 		this._scene = scene;
-		_components = ComponentContainer!Component(this);
+		_components = Components(this);
 	}
 
 	@property
@@ -69,4 +71,6 @@ public final class Entity
 			return _components.getRef();
 		}
 	}
+
+
 }

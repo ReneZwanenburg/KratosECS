@@ -39,12 +39,14 @@ public abstract class SceneComponent
 
 public final class Scene
 {
-	private ComponentContainer!SceneComponent _components;
+	alias Components = ComponentContainer!SceneComponent;
+
+	private Components _components;
 	private Array!Entity _entities;
 
 	this()
 	{
-		_components = ComponentContainer!SceneComponent(this);
+		_components = Components(this);
 	}
 
 	Entity createEntity()

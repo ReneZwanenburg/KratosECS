@@ -17,6 +17,7 @@ struct Dependency
 	return Dependency(allowDerived);
 }
 
+//TODO: Make generic Ref struct
 struct ComponentContainerRef(ComponentBaseType)
 {
 	private ComponentContainer!ComponentBaseType* _container;
@@ -39,6 +40,7 @@ struct ComponentContainerRef(ComponentBaseType)
 struct ComponentContainer(ComponentBaseType)
 {
 	alias OwnerType = typeof(ComponentBaseType.init.owner);
+
 	private Array!ComponentBaseType _components;
 	private OwnerType _owner;
 
@@ -99,6 +101,7 @@ struct ComponentContainer(ComponentBaseType)
 		auto component = first!(T, derived);
 		return component is null ? add!T : component;
 	}
+
 }
 
 
@@ -107,7 +110,7 @@ template ComponentInteraction(ComponentType)
 	void initialize(ComponentType component)
 	{
 		import std.traits;
-		import vmeta.uda : findFirstUDA;
+		import vibe.internal.meta.uda : findFirstUDA;
 
 		foreach(i, T; typeof(ComponentType.tupleof))
 		{
