@@ -1,23 +1,12 @@
 ﻿<Properties StartupItem="dub.json">
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Default" PreferredExecutionTarget="unittest" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="dub.json">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Default" PreferredExecutionTarget="debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="source\kratos\ecs\component.d">
     <Files>
-      <File FileName="source\kratos\ecs\package.d" Line="3" Column="1" NotebookId="1" />
-      <File FileName="source\kratos\ecs\entity.d" Line="1" Column="1" NotebookId="1" />
-      <File FileName="source\kratos\ecs\component.d" Line="1" Column="1" NotebookId="1" />
-      <File FileName="dub.json" Line="7" Column="1" NotebookId="1" />
-      <File FileName="source\main.d" Line="1" Column="1" NotebookId="1" />
-      <File FileName="..\vibe.d\dub.json" Line="1" Column="1" NotebookId="1" />
-      <File FileName="..\vibe.d\source\vibe\utils\array.d" Line="1" Column="1" NotebookId="1" />
-      <File FileName="..\vibe.d\source\vibe\utils\memory.d" Line="1" Column="1" NotebookId="1" />
+      <File FileName="source\kratos\ecs\package.d" Line="3" Column="1" />
+      <File FileName="source\kratos\ecs\entity.d" Line="1" Column="1" />
+      <File FileName="source\kratos\ecs\component.d" Line="78" Column="3" />
+      <File FileName="source\kratos\ecs\scene.d" Line="3" Column="1" />
     </Files>
-    <FloatingWindows>
-      <FloatingWindow WindowId="1" X="-8" Y="-8" Width="1280" Height="1002">
-        <Files>
-          <File FileName="source\kratos\ecs\scene.d" Line="14" Column="18" />
-        </Files>
-      </FloatingWindow>
-    </FloatingWindows>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
