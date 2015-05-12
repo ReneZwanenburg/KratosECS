@@ -5,6 +5,8 @@ import std.container.array;
 import kratos.ecs.component;
 import kratos.ecs.entity;
 
+import vibe.data.json;
+
 public abstract class SceneComponent
 {
 	package static Scene constructingOwner;
@@ -69,36 +71,37 @@ public final class Scene
 		}
 	}
 
-	//TODO: Serialization / deserialization
+	public static Scene fromRepresentation(Json representation)
+	{
+		auto scene = new Scene();
+		currentlyDeserializing = scene;
+		scope(exit) currentlyDeserializing = null;
+
+		auto componentsRepresentation = representation["components"];
+		if(componentsRepresentation.type != Json.Type.undefined)
+		{
+			scene._components = deserializeJson!Components(componentsRepresentation);
+		}
+
+		auto entitiesRepresentation = representation["entities"];
+		if(entitiesRepresentation.type != Json.Type.undefined)
+		{
+			assert(entitiesRepresentation.type == Json.Type.array);
+
+			foreach(entityRepresentation; representation["entities"][])
+			{
+				Entity.deserialize(scene, entityRepresentation);
+			}
+		}
+
+		return scene;
+	}
+	
+	Json toRepresentation()
+	{
+		//TODO: Serialization
+		return Json.emptyObject;
+	}
 
 	package static Scene currentlyDeserializing;
-}
-
-unittest
-{
-	auto scene = new Scene();
-	auto entity = scene.createEntity();
-
-	static class SomeSceneComponent : SceneComponent
-	{
-		@dependency SomeSceneComponent self;
-	}
-
-	static class SomeEntityComponent : Component
-	{
-
-	}
-
-	static class SomeOtherEntityComponent : Component
-	{
-		@dependency SomeSceneComponent mySceneDependency;
-		@dependency SomeEntityComponent myEntityDependency;
-	}
-
-	auto sceneComponent = scene.components.add!SomeSceneComponent;
-	auto entityComponent = entity.components.add!SomeOtherEntityComponent;
-
-	assert(sceneComponent.self is sceneComponent);
-	assert(entityComponent.myEntityDependency !is null);
-	assert(entityComponent.mySceneDependency is sceneComponent);
 }

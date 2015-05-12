@@ -3,6 +3,8 @@
 import kratos.ecs.component;
 import kratos.ecs.scene;
 
+import vibe.data.json;
+
 public abstract class Component
 {
 	package static Entity constructingOwner;
@@ -59,6 +61,12 @@ public final class Entity
 		_components = Components(this);
 	}
 
+	//Internal use only, used for deserialization
+	this()
+	{
+		this(Scene.currentlyDeserializing);
+	}
+
 	@property
 	{
 		inout(Scene) scene() inout
@@ -71,8 +79,21 @@ public final class Entity
 			return _components.getRef();
 		}
 	}
-	
-	//TODO: Serialization / deserialization
+
+	package static void deserialize(Scene owner, Json representation)
+	{
+		auto entity = owner.createEntity();
+
+		auto componentsRepresentation = representation["components"];
+		if(componentsRepresentation.type != Json.Type.undefined)
+		{
+			currentlyDeserializing = entity;
+			entity._components = deserializeJson!Components(componentsRepresentation);
+			currentlyDeserializing = null;
+		}
+	}
+
+	//TODO: Serialization
 
 	package static Entity currentlyDeserializing;
 }

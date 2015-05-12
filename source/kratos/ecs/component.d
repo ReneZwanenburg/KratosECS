@@ -6,8 +6,6 @@ import std.traits : ReturnType;
 
 import vibe.data.json;
 
-import kratos.util;
-
 alias AllowDerived = Flag!"AllowDerived";
 private alias DefaultAllowDerived = AllowDerived.yes;
 
@@ -111,6 +109,8 @@ struct ComponentContainer(ComponentBaseType)
 
 	static ComponentContainer fromRepresentation(Json containerRepresentation)
 	{
+		assert(containerRepresentation.type == Json.Type.array);
+
 		auto container = ComponentContainer(OwnerType.currentlyDeserializing);
 
 		ComponentBaseType.constructingOwner = container._owner;
@@ -118,9 +118,9 @@ struct ComponentContainer(ComponentBaseType)
 		foreach(componentRepresentation; containerRepresentation[])
 		{
 			auto fullTypeName = componentRepresentation["type"].get!string;
-			auto deserializer = deserializers[fullTypeName];
-
-			deserializer(componentRepresentation); // Added to _components in deserializer
+			auto deserializer = fullTypeName in deserializers;
+			assert(deserializer, fullTypeName ~ " has not been registered for serialization");
+			(*deserializer)(ComponentBaseType.constructingOwner, componentRepresentation); // Added to _components in deserializer
 		}
 
 		ComponentBaseType.constructingOwner = null;
@@ -128,7 +128,12 @@ struct ComponentContainer(ComponentBaseType)
 		return container;
 	}
 
-	//TODO: Serialization
+	Json toRepresentation()
+	{
+		//TODO: Serialization
+		return Json.emptyObject;
+	}
+
 }
 
 
@@ -152,11 +157,19 @@ template ComponentInteraction(ComponentType)
 
 }
 
-private template ComponentSerialization(ComponentType)
+mixin template SerializationRegistration()
+{
+	private final void registrationHelper()
+	{
+		ComponentSerialization!(typeof(this)).registrationHelper();
+	}
+}
+
+template ComponentSerialization(ComponentType)
 {
 private:
-	enum fullTypeName = typeid(ComponentType).name;
-	pragma(msg, "Generating Serialization routines for " ~ fullTypeName);
+	immutable string fullTypeName;
+	pragma(msg, "Generating serialization routines for " ~ ComponentType.stringof);
 
 	Json serialize(ComponentType component)
 	{
@@ -168,25 +181,40 @@ private:
 		return representation;
 	}
 
-	void deserialize(Json representation)
+	void deserialize(typeof(ComponentType.init.owner) owner, Json representation)
 	{
 		assert(fullTypeName == representation["type"].get!string, "Component representation ended up in the wrong deserializer");
 
-		auto component = deserializeJson!ComponentType(representation["representation"]);
-		component.owner.components._components.insertBack(component);
-		ComponentInteraction!ComponentType.initialize(component);
+		auto componentRepresentation = representation["representation"];
+
+		if(componentRepresentation.type == Json.Type.undefined)
+		{
+			owner.components.add!ComponentType;
+		}
+		else
+		{
+			auto component = deserializeJson!ComponentType(representation["representation"]);
+			owner.components._components.insertBack(component);
+			ComponentInteraction!ComponentType.initialize(component);
+		}
 	}
 
 	static this()
 	{
-		deserializers[fullTypeName] = &deserialize;
+		fullTypeName = typeid(ComponentType).name;
+		deserializers[fullTypeName] = cast(ComponentDeserializer)&deserialize;
 		serializers[fullTypeName] = cast(ComponentSerializer)&serialize;
+	}
+
+	public void registrationHelper()
+	{
+
 	}
 }
 
 private
 {
-	alias ComponentDeserializer = void function(Json);
+	alias ComponentDeserializer = void function(Object, Json);
 	alias ComponentSerializer = Json function(Object);
 
 	ComponentDeserializer[string] deserializers;
