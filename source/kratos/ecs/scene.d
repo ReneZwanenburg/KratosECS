@@ -68,6 +68,10 @@ public final class Scene
 			return _components.getRef();
 		}
 	}
+
+	//TODO: Serialization / deserialization
+
+	package static Scene currentlyDeserializing;
 }
 
 unittest

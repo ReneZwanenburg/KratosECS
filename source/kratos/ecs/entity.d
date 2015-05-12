@@ -71,6 +71,8 @@ public final class Entity
 			return _components.getRef();
 		}
 	}
+	
+	//TODO: Serialization / deserialization
 
-
+	package static Entity currentlyDeserializing;
 }
