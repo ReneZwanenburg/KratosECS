@@ -11,11 +11,13 @@ void main()
 
 class Transform : Component
 {
-
+	mixin SerializationRegistration;
 }
 
 class Camera : Component
 {
+	mixin SerializationRegistration;
+
 	private @dependency:
 	Transform transform;
 	RendererSpacePartitioning partitioning;
@@ -23,6 +25,8 @@ class Camera : Component
 
 class CameraMovement : Component
 {
+	mixin SerializationRegistration;
+
 	private @dependency:
 	Transform transform;
 	Camera camera;
@@ -30,6 +34,8 @@ class CameraMovement : Component
 
 class MeshRenderer : Component
 {
+	mixin SerializationRegistration;
+
 	private @dependency:
 	Transform transform;
 	RendererSpacePartitioning partitioning;
@@ -46,41 +52,12 @@ class RigidBody : Component
 
 class PhysicsSimulation : SceneComponent
 {
-
+	mixin SerializationRegistration;
 }
 
 class RendererSpacePartitioning : SceneComponent
 {
-
-}
-
-unittest
-{
-	auto scene = new Scene();
-	auto entity = scene.createEntity();
-	
-	static class SomeSceneComponent : SceneComponent
-	{
-		@dependency SomeSceneComponent self;
-	}
-	
-	static class SomeEntityComponent : Component
-	{
-		
-	}
-	
-	static class SomeOtherEntityComponent : Component
-	{
-		@dependency SomeSceneComponent mySceneDependency;
-		@dependency SomeEntityComponent myEntityDependency;
-	}
-	
-	auto sceneComponent = scene.components.add!SomeSceneComponent;
-	auto entityComponent = entity.components.add!SomeOtherEntityComponent;
-	
-	assert(sceneComponent.self is sceneComponent);
-	assert(entityComponent.myEntityDependency !is null);
-	assert(entityComponent.mySceneDependency is sceneComponent);
+	mixin SerializationRegistration;
 }
 
 unittest
@@ -110,4 +87,9 @@ unittest
 
 	auto json = parseJsonString(data);
 	auto scene = deserializeJson!Scene(json);
+
+	import std.stdio;
+	writeln(scene.serializeToPrettyJson());
+
+	writeln(scene.entities.front.components.all);
 }

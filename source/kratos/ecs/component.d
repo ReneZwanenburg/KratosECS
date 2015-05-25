@@ -49,6 +49,8 @@ struct ComponentContainer(ComponentBaseType)
 
 	@disable this();
 
+	@disable this(this);
+
 	this(OwnerType owner)
 	{
 		assert(owner !is null);
@@ -100,6 +102,11 @@ struct ComponentContainer(ComponentBaseType)
 		}
 	}
 
+	auto all()
+	{
+		return _components[];
+	}
+
 	T firstOrAdd(T, AllowDerived derived = DefaultAllowDerived)() if(is(T : ComponentBaseType))
 	{
 		auto component = first!(T, derived);
@@ -107,13 +114,11 @@ struct ComponentContainer(ComponentBaseType)
 	}
 
 
-	static ComponentContainer fromRepresentation(Json containerRepresentation)
+	package void deserialize(Json containerRepresentation)
 	{
 		assert(containerRepresentation.type == Json.Type.array);
 
-		auto container = ComponentContainer(OwnerType.currentlyDeserializing);
-
-		ComponentBaseType.constructingOwner = container._owner;
+		ComponentBaseType.constructingOwner = _owner;
 
 		foreach(componentRepresentation; containerRepresentation[])
 		{
@@ -124,14 +129,21 @@ struct ComponentContainer(ComponentBaseType)
 		}
 
 		ComponentBaseType.constructingOwner = null;
-
-		return container;
 	}
 
-	Json toRepresentation()
+	package Json serialize()
 	{
-		//TODO: Serialization
-		return Json.emptyObject;
+		auto json = Json.emptyArray;
+
+		foreach(component; this.all)
+		{
+			auto fullTypeName = component.classinfo.name;
+			auto deserializer = fullTypeName in serializers;
+			assert(deserializer, fullTypeName ~ " has not been registered for serialization");
+			json ~= (*deserializer)(component);
+		}
+
+		return json;
 	}
 
 }

@@ -45,15 +45,17 @@ public final class Scene
 
 	private Components _components;
 	private Array!Entity _entities;
+	private string _name;
 
-	this()
+	this(string name = null)
 	{
 		_components = Components(this);
+		this.name = name;
 	}
 
-	Entity createEntity()
+	Entity createEntity(string name = null)
 	{
-		auto entity = new Entity(this);
+		auto entity = new Entity(this, name);
 		_entities.insertBack(entity);
 		return entity;
 	}
@@ -69,18 +71,26 @@ public final class Scene
 		{
 			return _components.getRef();
 		}
+
+		string name()
+		{
+			return _name;
+		}
+
+		void name(string newName)
+		{
+			_name = newName.length ? newName : "Anonymous Scene";
+		}
 	}
 
 	public static Scene fromRepresentation(Json representation)
 	{
-		auto scene = new Scene();
-		currentlyDeserializing = scene;
-		scope(exit) currentlyDeserializing = null;
+		auto scene = new Scene(representation["name"].opt!string);
 
 		auto componentsRepresentation = representation["components"];
 		if(componentsRepresentation.type != Json.Type.undefined)
 		{
-			scene._components = deserializeJson!Components(componentsRepresentation);
+			scene._components.deserialize(componentsRepresentation);
 		}
 
 		auto entitiesRepresentation = representation["entities"];
@@ -88,7 +98,7 @@ public final class Scene
 		{
 			assert(entitiesRepresentation.type == Json.Type.array);
 
-			foreach(entityRepresentation; representation["entities"][])
+			foreach(entityRepresentation; entitiesRepresentation[])
 			{
 				Entity.deserialize(scene, entityRepresentation);
 			}
@@ -99,9 +109,19 @@ public final class Scene
 	
 	Json toRepresentation()
 	{
-		//TODO: Serialization
-		return Json.emptyObject;
-	}
+		auto json = Json.emptyObject;
 
-	package static Scene currentlyDeserializing;
+		json["name"] = name;
+		json["components"] = _components.serialize();
+
+		auto entitiesJson = Json.emptyArray;
+		foreach(entity; entities)
+		{
+			entitiesJson ~= entity.serialize();
+		}
+
+		json["entities"] = entitiesJson;
+
+		return json;
+	}
 }

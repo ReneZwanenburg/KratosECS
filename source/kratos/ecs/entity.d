@@ -53,18 +53,14 @@ public final class Entity
 
 	private Components _components;
 	private Scene _scene;
+	private string _name;
 
-	package this(Scene scene)
+	package this(Scene scene, string name)
 	{
 		assert(scene !is null);
 		this._scene = scene;
 		_components = Components(this);
-	}
-
-	//Internal use only, used for deserialization
-	this()
-	{
-		this(Scene.currentlyDeserializing);
+		this.name = name;
 	}
 
 	@property
@@ -78,22 +74,34 @@ public final class Entity
 		{
 			return _components.getRef();
 		}
+
+		string name()
+		{
+			return _name;
+		}
+
+		void name(string newName)
+		{
+			_name = newName.length ? newName : "Anonymous Entity";
+		}
 	}
 
 	package static void deserialize(Scene owner, Json representation)
 	{
-		auto entity = owner.createEntity();
+		auto entity = owner.createEntity(representation["name"].opt!string);
 
 		auto componentsRepresentation = representation["components"];
 		if(componentsRepresentation.type != Json.Type.undefined)
 		{
-			currentlyDeserializing = entity;
-			entity._components = deserializeJson!Components(componentsRepresentation);
-			currentlyDeserializing = null;
+			entity._components.deserialize(componentsRepresentation);
 		}
 	}
 
-	//TODO: Serialization
-
-	package static Entity currentlyDeserializing;
+	package Json serialize()
+	{
+		auto json = Json.emptyObject;
+		json["name"] = name;
+		json["components"] = _components.serialize();
+		return json;
+	}
 }
